@@ -1,0 +1,54 @@
+-- Define Domain Tables
+CREATE TABLE IF NOT EXISTS contact_type (
+  contact_type_id SERIAL PRIMARY KEY,
+  contact_type_name VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS demographic_type (
+  demographic_type_id SERIAL PRIMARY KEY,
+  demographic_type_name VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- Define Base Table
+CREATE TABLE IF NOT EXISTS county (
+  county_code VARCHAR(20) PRIMARY KEY,
+  county_name VARCHAR(255) NOT NULL
+);
+
+-- Define Link/Bridge Tables
+CREATE TABLE IF NOT EXISTS county_contact (
+  county_contact_id SERIAL PRIMARY KEY,
+  county_code VARCHAR(20) REFERENCES county(county_code) NOT NULL,
+  contact_type_id INTEGER REFERENCES contact_type(contact_type_id) NOT NULL,  -- Change data type to INTEGER
+  contact_information TEXT NOT NULL,
+  description VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS governor (
+  governor_id SERIAL PRIMARY KEY,
+  governor_name JSONB NOT NULL DEFAULT '{}'::jsonb,
+  image_url TEXT
+);
+
+CREATE TABLE IF NOT EXISTS county_governor (
+  county_governor_id SERIAL PRIMARY KEY,
+  county_code VARCHAR(20) REFERENCES county(county_code) NOT NULL,
+  governor_id INTEGER REFERENCES governor(governor_id) NOT NULL,
+  tenure_start_date DATE NOT NULL,
+  tenure_end_date DATE,
+  active BOOLEAN DEFAULT TRUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS county_website (
+  county_website_id SERIAL PRIMARY KEY,
+  county_code VARCHAR(20) REFERENCES county(county_code) NOT NULL,
+  description VARCHAR(255) DEFAULT 'main_website',
+  website_url TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS county_demographics (
+  county_demographics_id SERIAL PRIMARY KEY,
+  county_code VARCHAR(20) REFERENCES county(county_code) NOT NULL,
+  demographic_id INTEGER REFERENCES demographic_type(demographic_type_id) NOT NULL,
+  demographic_value TEXT NOT NULL
+);
