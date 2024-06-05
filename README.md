@@ -25,7 +25,7 @@ This Flask API provides endpoints to retrieve county data, enabling users to acc
 2. Navigate to the project directory
 3. Install dependencies - pip install -r requirements.txt
 4. Set Up the Postgress database
--- include the config.py file:
+include the config.py file:
 DATABASE_HOST = "localhost"
 DATABASE_PORT = "5432"
 DATABASE_USER = "your_database_user"
