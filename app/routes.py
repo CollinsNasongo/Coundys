@@ -1,11 +1,9 @@
-from flask import Flask
-from app.config import init_db, create_user, list_users, change_password
+from flask import Blueprint, jsonify
+from .models import County
 
-app = Flask(__name__)
-app.secret_key = "your-secret"
+bp = Blueprint("main", __name__)
 
-# Register CLI commands
-app.cli.add_command(init_db)
-app.cli.add_command(create_user)
-app.cli.add_command(list_users)
-app.cli.add_command(change_password)
+@bp.route("/counties", methods=["GET"])
+def list_counties():
+    counties = County.query.all()
+    return jsonify([{"code": c.county_code, "name": c.county_name} for c in counties])
