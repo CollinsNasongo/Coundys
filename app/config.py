@@ -1,7 +1,7 @@
 import click
 from flask.cli import with_appcontext
 from models import get_db, create_user_table
-from auth import hash_password, prompt_password
+from app.db import hash_password, prompt_password
 
 @click.command("init-db")
 @with_appcontext

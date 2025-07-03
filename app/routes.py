@@ -1,5 +1,5 @@
 from flask import Flask
-from cli import init_db, create_user, list_users, change_password
+from app.config import init_db, create_user, list_users, change_password
 
 app = Flask(__name__)
 app.secret_key = "your-secret"
