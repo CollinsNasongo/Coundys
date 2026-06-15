@@ -1,91 +1,100 @@
-from flask_sqlalchemy import SQLAlchemy
+"""ORM models mapped to the existing gold tables (read-only)."""
+
+from __future__ import annotations
+
 from datetime import datetime
 
-db = SQLAlchemy()
+from sqlalchemy import BigInteger, DateTime, Integer, Numeric, String
+from sqlalchemy.orm import Mapped, mapped_column
 
-class ContactType(db.Model):
-    __tablename__ = 'contact_type'
+from app.config import settings
+from app.database import Base
 
-    contact_type_id = db.Column(db.BigInteger, primary_key=True)
-    contact_type_name = db.Column(db.String(255), nullable=False, unique=True)
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
-
-
-class DemographicType(db.Model):
-    __tablename__ = 'demographic_type'
-
-    demographic_type_id = db.Column(db.BigInteger, primary_key=True)
-    demographic_type_name = db.Column(db.String(255), nullable=False, unique=True)
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+_SCHEMA = {"schema": settings.GOLD_SCHEMA}
 
 
-class County(db.Model):
-    __tablename__ = 'county'
+class NationalSummary(Base):
+    __tablename__ = "national_summary"
+    __table_args__ = _SCHEMA
 
-    county_code = db.Column(db.String(20), primary_key=True)
-    county_name = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
-
-
-class ContactDetail(db.Model):
-    __tablename__ = 'contact_detail'
-
-    contact_id = db.Column(db.BigInteger, primary_key=True)
-    county_code = db.Column(db.String(20), db.ForeignKey('county.county_code', ondelete='RESTRICT'), nullable=False)
-    contact_type_id = db.Column(db.BigInteger, db.ForeignKey('contact_type.contact_type_id', ondelete='RESTRICT'), nullable=False)
-    contact_information = db.Column(db.String(1000), nullable=False)
-    description = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
-
-    county = db.relationship('County', backref='contact_details')
-    contact_type = db.relationship('ContactType', backref='contact_details')
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    total_counties: Mapped[int] = mapped_column(Integer)
+    total_constituencies: Mapped[int] = mapped_column(Integer)
+    total_wards: Mapped[int] = mapped_column(Integer)
+    total_polling_stations: Mapped[int] = mapped_column(Integer)
+    total_registered_voters: Mapped[int] = mapped_column(BigInteger)
+    avg_voters_per_station: Mapped[int] = mapped_column(Integer)
+    min_voters_per_station: Mapped[int] = mapped_column(Integer)
+    max_voters_per_station: Mapped[int] = mapped_column(Integer)
+    avg_voters_per_county: Mapped[int] = mapped_column(Integer)
+    generated_at: Mapped[datetime] = mapped_column(DateTime)
 
 
-class Governor(db.Model):
-    __tablename__ = 'governor'
+class CountySummary(Base):
+    __tablename__ = "county_summary"
+    __table_args__ = _SCHEMA
 
-    governor_id = db.Column(db.BigInteger, primary_key=True)
-    first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
-    image_url = db.Column(db.String(1000))
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
-
-
-class CountyGovernor(db.Model):
-    __tablename__ = 'county_governor'
-
-    county_governor_id = db.Column(db.BigInteger, primary_key=True)
-    county_code = db.Column(db.String(20), db.ForeignKey('county.county_code', ondelete='RESTRICT'), nullable=False)
-    governor_id = db.Column(db.BigInteger, db.ForeignKey('governor.governor_id', ondelete='RESTRICT'), nullable=False)
-    tenure_start_date = db.Column(db.Date, nullable=False)
-    tenure_end_date = db.Column(db.Date)
-    active = db.Column(db.Boolean, nullable=False, default=True)
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
-
-    county = db.relationship('County', backref='governors')
-    governor = db.relationship('Governor', backref='terms')
+    county_code: Mapped[int] = mapped_column(Integer, primary_key=True)
+    county_name: Mapped[str] = mapped_column(String(100))
+    constituency_count: Mapped[int] = mapped_column(Integer)
+    ward_count: Mapped[int] = mapped_column(Integer)
+    polling_station_count: Mapped[int] = mapped_column(Integer)
+    registered_voters: Mapped[int] = mapped_column(BigInteger)
+    pct_of_national_voters: Mapped[float] = mapped_column(Numeric(7, 4))
+    national_voter_rank: Mapped[int] = mapped_column(Integer)
+    avg_voters_per_station: Mapped[int] = mapped_column(Integer)
+    generated_at: Mapped[datetime] = mapped_column(DateTime)
 
 
-class CountyWebsite(db.Model):
-    __tablename__ = 'county_website'
+class ConstituencySummary(Base):
+    __tablename__ = "constituency_summary"
+    __table_args__ = _SCHEMA
 
-    website_id = db.Column(db.BigInteger, primary_key=True)
-    county_code = db.Column(db.String(20), db.ForeignKey('county.county_code', ondelete='RESTRICT'), nullable=False)
-    website_url = db.Column(db.String(1000), nullable=False)
-    description = db.Column(db.String(255), default='main_website')
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+    constituency_code: Mapped[int] = mapped_column(Integer, primary_key=True)
+    constituency_name: Mapped[str] = mapped_column(String(150))
+    county_code: Mapped[int] = mapped_column(Integer, index=True)
+    county_name: Mapped[str] = mapped_column(String(100))
+    ward_count: Mapped[int] = mapped_column(Integer)
+    polling_station_count: Mapped[int] = mapped_column(Integer)
+    registered_voters: Mapped[int] = mapped_column(BigInteger)
+    pct_of_county_voters: Mapped[float] = mapped_column(Numeric(7, 4))
+    rank_in_county: Mapped[int] = mapped_column(Integer)
+    avg_voters_per_station: Mapped[int] = mapped_column(Integer)
+    generated_at: Mapped[datetime] = mapped_column(DateTime)
 
-    county = db.relationship('County', backref='websites')
+
+class WardSummary(Base):
+    __tablename__ = "ward_summary"
+    __table_args__ = _SCHEMA
+
+    ward_code: Mapped[int] = mapped_column(Integer, primary_key=True)
+    ward_name: Mapped[str] = mapped_column(String(150))
+    constituency_code: Mapped[int] = mapped_column(Integer, index=True)
+    constituency_name: Mapped[str] = mapped_column(String(150))
+    county_code: Mapped[int] = mapped_column(Integer, index=True)
+    county_name: Mapped[str] = mapped_column(String(100))
+    polling_station_count: Mapped[int] = mapped_column(Integer)
+    registered_voters: Mapped[int] = mapped_column(BigInteger)
+    pct_of_constituency_voters: Mapped[float] = mapped_column(Numeric(7, 4))
+    rank_in_constituency: Mapped[int] = mapped_column(Integer)
+    avg_voters_per_station: Mapped[int] = mapped_column(Integer)
+    generated_at: Mapped[datetime] = mapped_column(DateTime)
 
 
-class CountyDemographic(db.Model):
-    __tablename__ = 'county_demographic'
+class PollingStation(Base):
+    __tablename__ = "polling_station"
+    __table_args__ = _SCHEMA
 
-    demographic_id = db.Column(db.BigInteger, primary_key=True)
-    county_code = db.Column(db.String(20), db.ForeignKey('county.county_code', ondelete='RESTRICT'), nullable=False)
-    demographic_type_id = db.Column(db.BigInteger, db.ForeignKey('demographic_type.demographic_type_id', ondelete='RESTRICT'), nullable=False)
-    demographic_value = db.Column(db.String(1000), nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
-
-    county = db.relationship('County', backref='demographics')
-    demographic_type = db.relationship('DemographicType', backref='demographics')
+    polling_station_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    polling_station_code: Mapped[int] = mapped_column(BigInteger, index=True)
+    polling_station_seq: Mapped[int] = mapped_column(Integer)
+    polling_station_name: Mapped[str] = mapped_column(String(250))
+    ward_code: Mapped[int] = mapped_column(Integer, index=True)
+    ward_name: Mapped[str] = mapped_column(String(150))
+    constituency_code: Mapped[int] = mapped_column(Integer, index=True)
+    constituency_name: Mapped[str] = mapped_column(String(150))
+    county_code: Mapped[int] = mapped_column(Integer, index=True)
+    county_name: Mapped[str] = mapped_column(String(100))
+    registered_voters: Mapped[int] = mapped_column(Integer)
+    pct_of_national_voters: Mapped[float] = mapped_column(Numeric(9, 6))
+    generated_at: Mapped[datetime] = mapped_column(DateTime)
