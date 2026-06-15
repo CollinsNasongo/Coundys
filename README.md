@@ -1,6 +1,6 @@
 # IEBC Voter Registration API
 
-Read-only FastAPI API serving voter registration data from the `coundys_gold` layer.
+Read-only FastAPI API serving voter registration data from the a curated gold layer.
 
 ## Endpoints
 
